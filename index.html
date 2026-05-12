@@ -228,6 +228,20 @@
     .badge-pending { background: var(--warning-bg); color: var(--warning-text); }
     .badge-sent { background: var(--success-bg); color: var(--success-text); }
 
+    .btn-del {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-hint);
+      font-size: 16px;
+      line-height: 1;
+      padding: 4px 6px;
+      border-radius: var(--radius-sm);
+      transition: color 0.15s, background 0.15s;
+      flex-shrink: 0;
+    }
+    .btn-del:hover { color: var(--danger-text); background: var(--danger-bg); }
+
     .empty {
       font-size: 13px;
       color: var(--text-hint);
@@ -302,7 +316,8 @@
     const WEBHOOK_GET  = 'https://n8n.zenith-studio.it/webhook/42a6d63c-12b7-48a2-8b7f-68313af5c883';
 
     let appts = [];
-    let pazienti = []; // {nome, cognome, tel}
+    let pazienti = [];
+    let _sorted = [];
 
     const now = new Date();
     document.getElementById('hdr-date').textContent =
@@ -332,7 +347,8 @@
       document.getElementById('stat-tomorrow').textContent = appts.filter(a => a.data === tomorrow).length;
       document.getElementById('stat-sent').textContent = appts.filter(a => a.reminder).length;
 
-      const sorted = [...appts].sort((a, b) => (a.data + a.ora).localeCompare(b.data + b.ora));
+      _sorted = [...appts].sort((a, b) => (a.data + a.ora).localeCompare(b.data + b.ora));
+      const sorted = _sorted;
       const list = document.getElementById('appt-list');
 
       if (!sorted.length) {
@@ -340,7 +356,7 @@
         return;
       }
 
-      list.innerHTML = sorted.map(a => `
+      list.innerHTML = sorted.map((a, i) => `
         <div class="appt-item">
           <div class="avatar">${initials(a.nome, a.cognome)}</div>
           <div style="min-width:0; flex:1">
@@ -348,6 +364,7 @@
             <div class="appt-time">${fmtDate(a.data)} · ${a.ora}</div>
           </div>
           <span class="badge ${a.reminder ? 'badge-sent' : 'badge-pending'}">${a.reminder ? 'Inviato' : 'In attesa'}</span>
+          <button class="btn-del" onclick="deleteAppt(${i})" title="Elimina">×</button>
         </div>
       `).join('');
     }
@@ -501,6 +518,13 @@
 
       btn.disabled = false;
       btn.textContent = '+ Aggiungi';
+    }
+
+    function deleteAppt(i) {
+      const item = _sorted[i];
+      const idx = appts.indexOf(item);
+      if (idx !== -1) appts.splice(idx, 1);
+      render();
     }
 
     loadData();
