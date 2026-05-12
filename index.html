@@ -385,7 +385,8 @@
           tel: String(r['Numero di telefono '] || r['Numero di telefono'] || '').trim(),
           data: sheetDateToIso(r['Data appuntamento']),
           ora: r['Orario'] || '',
-          reminder: (r['Reminder'] || '').toString().toLowerCase() === 'mandato'
+          reminder: (r['Reminder'] || '').toString().toLowerCase() === 'mandato',
+          row_number: r['row_number']
         })).filter(a => a.nome && a.data);
 
         render();
@@ -520,11 +521,16 @@
       btn.textContent = '+ Aggiungi';
     }
 
-    function deleteAppt(i) {
+    async function deleteAppt(i) {
       const item = _sorted[i];
       const idx = appts.indexOf(item);
       if (idx !== -1) appts.splice(idx, 1);
       render();
+      fetch('https://n8n.zenith-studio.it/webhook/875e63b3-e25e-4278-85d8-23a0ab57efdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ row_number: item.row_number })
+      }).catch(e => console.error('Errore eliminazione', e));
     }
 
     loadData();
